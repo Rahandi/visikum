@@ -8,15 +8,15 @@ import dlib
 detector = dlib.get_frontal_face_detector()
 
 # video_capture = cv2.VideoCapture('output1.mp4')
-video_capture = cv2.VideoCapture('rtsp://192.168.0.103:554/live/0/MAIN')
+video_capture = cv2.VideoCapture('rtsp://admin:12345hik@192.168.0.101:554/h264/ch1/main/av_stream')
 
 data = []
 
 def worker(frame):
     global data
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    rects = detector(gray, 1)
-    print(len(rects))
+    rects = detector(gray, 0)
+    # print(len(rects))
     temp = []
     for item in rects:
         temp.append((item.left(), item.top(), item.right(), item.bottom()))
@@ -31,10 +31,10 @@ while True:
         if not ret:
             break
 
-        if count % 5 == 0:
-            t = Thread(target=worker, args=(frame,))
-            t.start()
-            pass
+        # if count % 5 == 0:
+        #     t = Thread(target=worker, args=(frame,))
+        #     t.start()
+        #     pass
 
         # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         # rects = detector(gray, 1)

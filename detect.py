@@ -5,7 +5,7 @@ import sys
 cascPath = 'haarcascade_frontalface_default.xml'
 faceCascade = cv2.CascadeClassifier(cascPath)
 
-video_capture = cv2.VideoCapture('rtsp://192.168.0.113:554/live/0/MAIN')
+video_capture = cv2.VideoCapture('rtsp://admin:12345hik@192.168.0.101:554/h264/ch1/main/av_stream')
 
 data = []
 
