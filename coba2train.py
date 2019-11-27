@@ -71,12 +71,14 @@ for face_pixels in tqdm(X_test):
     embedding = get_embedding(model, img)
     newTestX.append(embedding)
     
+newTrainX = np.array(newTrainX)
+newTestX = np.array(newTestX)
 np.savez_compressed('data/labeled/data_embedded.npz', newTrainX, newTestX)
 
 # Normalize vector data
 from sklearn.preprocessing import Normalizer
 
-transformer = Normalizer(norm='l1')
+transformer = Normalizer(norm='l2')
 normXTrain = transformer.transform(newTrainX)
 normXTest = transformer.transform(newTestX)
 
@@ -89,7 +91,7 @@ encodedYTest = encoder.transform(y_test)
 
 # Create training model
 from sklearn.svm import SVC
-train_model = SVC(kernel='linear')
+train_model = SVC(kernel='linear', probability=True)
 
 train_model.fit(normXTrain, encodedYTrain)
 
