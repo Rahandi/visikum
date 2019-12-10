@@ -28,11 +28,9 @@ class MainDetection():
         self.classifier_file = open('model/classifier.pkl', 'rb')
         self.classifier = pickle.load(self.classifier_file)
         self.classifier_file.close()
-        print(self.classifier)
         self.label_encoding_file = open('label_encoding.pkl', 'rb')
         self.label_encoding = pickle.load(self.label_encoding_file)
         self.label_encoding_file.close()
-        print(self.label_encoding)    
 
     def worker(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
