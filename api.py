@@ -33,8 +33,7 @@ class MainDetection():
         self.label_encoding_file = open('label_encoding.pkl', 'rb')
         self.label_encoding = pickle.load(self.label_encoding_file)
         self.label_encoding_file.close()
-        print(self.label_encoding)
-        
+        print(self.label_encoding)    
 
     def worker(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -60,20 +59,13 @@ class MainDetection():
                 predicted = self.classifier.predict(encoded_face)
                 pred_class = self.label_encoding[predicted[0]]
                 self.result.append(((x1, y1, x2, y2), pred_class))
+                self.frame = self.result
             except Exception as e:
                 print(str(e))
 
-    def get_detect(self, data):
-        # video = 'data/data.mp4'
-        video = data
-        capturer = cv2.VideoCapture(video)
-        capturer.set(1, 19500)
-        output = cv2.VideoWriter('data/result/data_result.mp4', -1, 15.0, (1077, 720))
-        frame_time = []
-        counter = 0
+    def preprocessing(self, capturer, counter, frame_time):
         while True:
             try:
-                now = time.time()
                 ret, frame = capturer.read()
                 if not ret:
                     break
@@ -92,56 +84,31 @@ class MainDetection():
                 if len(frame_time) != 0:
                     total_time = sum(frame_time)
                     cv2.putText(frame, str(int(len(frame_time)/total_time)) + ' fps', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                output.write(frame)
-                # cv2.imshow('video', frame)
-                frame_time.append(time.time()-now)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
             except Exception as e:
                 print(str(e))
                 break
-
         cv2.destroyAllWindows()
         capturer.release()
-        output.release()
+
+    def get_detect(self, data):
+        capturer = cv2.VideoCapture(data)
+        capturer.set(1, 19500)
+        # output = cv2.VideoWriter('data/result/data_result.mp4', -1, 15.0, (1077, 720))
+        frame_time = []
+        
+        t = Thread(target=self.preprocessing, args=(capturer, 0, frame_time))
+        t.start()    
 
     def get_vis(self):
-        video = 'data/result/data_result.mp4'
-        capturer = cv2.VideoCapture(video)
-        while True:
-            try:
-                ret, frame = capturer.read()
-                if not ret:
-                    break
-                # cv2.imshow('get_vis_video', frame)
-                res = frame
-                #return frame
-                # if cv2.waitKey(1) & 0xFF == ord('q'):
-                    # break
-            except Exception as e:
-                print(str(e))
-                break
-    
-    def get_frame(self):
-        frame_result = res
-        return frame_result
-
-
-@app.route('/post', methods=["POST"]) # EXAMPLE - with file and roi
-def get_detection_video(data):
-    frame = MainDetection()
-    t = Thread(target=frame.get_detect, args=data)
-    t.start()
+        return self.frame
 
 @app.route('/get', methods=["GET"])
 def get_visualization():
-    frame = MainDetection() # ambil dari video yg udah di detect
-    t1 = Thread(target=frame.get_vis)
-    t2 = Thread(target=frame.get_frame)
-    t1.start()
-    t2.start()
-    t1.join()
-    t2.join()
+    video = 'data/data.mp4'
+    detector = MainDetection() # ambil dari video yg udah di detect
+    detector.get_detect(video)
+    res_frame = detector.get_vis()
+    return res_frame
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
