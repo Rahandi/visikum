@@ -15,8 +15,7 @@ from threading import Thread
 from keras.models import load_model
 from sklearn.preprocessing import Normalizer
 
-res = None
-
+res_frame = None
 class MainDetection():
 
     def __init__(self):
@@ -59,11 +58,11 @@ class MainDetection():
                 predicted = self.classifier.predict(encoded_face)
                 pred_class = self.label_encoding[predicted[0]]
                 self.result.append(((x1, y1, x2, y2), pred_class))
-                self.frame = self.result
             except Exception as e:
                 print(str(e))
 
     def preprocessing(self, capturer, counter, frame_time):
+        global res_frame
         while True:
             try:
                 ret, frame = capturer.read()
@@ -84,6 +83,9 @@ class MainDetection():
                 if len(frame_time) != 0:
                     total_time = sum(frame_time)
                     cv2.putText(frame, str(int(len(frame_time)/total_time)) + ' fps', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+                res_frame = frame
+
             except Exception as e:
                 print(str(e))
                 break
@@ -97,18 +99,14 @@ class MainDetection():
         frame_time = []
         
         t = Thread(target=self.preprocessing, args=(capturer, 0, frame_time))
-        t.start()    
-
-    def get_vis(self):
-        return self.frame
+        t.start()
 
 @app.route('/get', methods=["GET"])
 def get_visualization():
-    video = 'data/data.mp4'
-    detector = MainDetection() # ambil dari video yg udah di detect
-    detector.get_detect(video)
-    res_frame = detector.get_vis()
     return res_frame
 
 if __name__ == '__main__':
+    video = 'data/data.mp4'
+    detector = MainDetection() # ambil dari video yg udah di detect
+    detector.get_detect(video)
     app.run(host='0.0.0.0', port=5000, debug=True)
