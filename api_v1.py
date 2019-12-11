@@ -24,6 +24,8 @@ mydb = mysql.connector.connect(
   database="stream"
 )
 cursor = mydb.cursor()
+cursor.execute('truncate log')
+mydb.commit()
 
 dlib_detector = dlib.get_frontal_face_detector()
 x_encoder = Normalizer(norm = 'l2')
@@ -104,7 +106,6 @@ def worker(frame):
         except Exception as e:
             print(str(e))
 
-video_path = 'data/data1.mp4'
 video_path = 'data/data.mp4'
 capturer = cv2.VideoCapture(video_path)
 output = cv2.VideoWriter('data/result/data_result.mp4', -1, 30.0, (1280, 720))

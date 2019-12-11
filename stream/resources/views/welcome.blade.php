@@ -80,11 +80,77 @@
             @endif
 
             <div class="content">
-                <video width="1280" height="720" autoplay loop muted controls>
-                    <source src="http://10.151.33.18:8080/go.ogg" type="video/ogg">
-                    Your browser does not support the video tag.
-                </video>
+                <div class="col-sm-8">
+                    <video width="1280" height="720" autoplay loop muted controls>
+                        <source src="http://10.151.33.18:8080/go.ogg" type="video/ogg">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="col-sm 4" id="history">
+                    <table border="" style="text-align: center; width:100%">
+                        <thead>
+                            <th style="width: 25px;">Nama</th>
+                            <th style="width: 25px;">Timestamp</th>
+                        </thead>
+                        <tbody id="tab_history">
+
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script>
+            let jsonData = new Array();
+            const removeChildren = (node) => {
+                while (node.firstChild) {
+                    node.removeChild(node.firstChild);
+                }
+            }
+            $(document).ready(function(){
+                setInterval(function(){
+                    $.ajax({
+                        url : "{{route('ambil')}}",
+                        type : "GET",
+                        dataType : "json",
+                        contentType: "application/json; charset=utf-8",
+                        data: {
+                            "id": 'id',
+                            "nama": 'nama',
+                            "timestamp": 'timestamp',
+                            "_token": "{{ csrf_token() }}"
+                        },
+                        success: function(data){
+                            jsonData = data;
+                            console.log(jsonData);
+                            let dataDiv = document.getElementById('tab_history');
+                            let fragment = document.createDocumentFragment();
+                            let i = 0;
+                            for (const data of jsonData.reverse()) {
+                                if (i <= 10){
+                                    let rows = document.createElement('tr');
+                                    let nama = document.createElement('td');
+                                    nama.setAttribute('class', 'nama');
+                                    nama.textContent = `${data.nama}`;
+                                    let waktu = document.createElement('td');
+                                    waktu.setAttribute('class', 'waktu');
+                                    waktu.textContent = `${data.timestamp}`;
+                                    fragment.appendChild(rows);
+                                    rows.appendChild(nama);
+                                    rows.appendChild(waktu);
+                                    i++;
+                                }
+                                else{
+                                    break;
+                                }
+                            }
+                            removeChildren(dataDiv);
+                            dataDiv.appendChild(fragment);
+                        }
+                    }, "json");
+                })
+            })
+        </script>
     </body>
 </html>
