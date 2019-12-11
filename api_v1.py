@@ -67,10 +67,13 @@ def check_out():
                 cursor.execute(sql, temp)
                 mydb.commit()
                 continue
-            itera = len(keluar) if len(keluar) < 10 else 10
-            for i in range(itera):
+            counter = 0
+            for i in range(len(keluar)-1,-1,-1):
                 if keluar[i][0] == temp[0] and (temp[1] - keluar[i][1]).seconds < 60:
                     mark = 1
+                if counter >= 10:
+                    break
+                counter += 1
             if mark == 0:
                 keluar.append(temp)
                 sql = "insert into log (nama, timestamp) values (%s, %s)"
