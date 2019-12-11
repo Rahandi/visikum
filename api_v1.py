@@ -2,6 +2,7 @@ import sys
 import time
 import dlib
 import pickle
+import mysql.connector
 
 import numpy as np
 import pandas as pd
@@ -16,14 +17,18 @@ from datetime import datetime
 from keras.models import load_model
 from sklearn.preprocessing import Normalizer
 
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  passwd="",
+  database="stream"
+)
+cursor = mydb.cursor()
+
 dlib_detector = dlib.get_frontal_face_detector()
 x_encoder = Normalizer(norm = 'l2')
 
 model = load_model('model/facenet_keras.h5')
-
-# classifier_file = open('model/classifier.pkl', 'rb')
-# classifier = pickle.load(classifier_file)
-# classifier_file.close()
 
 label_encoding_file = open('label_encoding.pkl', 'rb')
 label_encoding = pickle.load(label_encoding_file)
@@ -56,6 +61,9 @@ def check_out():
             temp = (item[-1], datetime.now())
             if len(keluar) == 0:
                 keluar.append(temp)
+                sql = "insert into log (nama, timestamp) values (%s, %s)"
+                cursor.execute(sql, temp)
+                mydb.commit()
                 continue
             itera = len(keluar) if len(keluar) < 10 else 10
             for i in range(itera):
@@ -63,6 +71,9 @@ def check_out():
                     mark = 1
             if mark == 0:
                 keluar.append(temp)
+                sql = "insert into log (nama, timestamp) values (%s, %s)"
+                cursor.execute(sql, temp)
+                mydb.commit()
 
 def worker(frame):
     global result, model
@@ -112,12 +123,12 @@ while True:
         if counter % 5 == 0:
             worker(frame.copy())
             check_out()
-            print(keluar)
-            print('==========================================')
+            # print(keluar)
+            # print('==========================================')
 
         counter += 1
 
-        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         cv2.rectangle(frame, (975, 0), (1077, 720), (0,0,0), 1)
         
@@ -133,10 +144,10 @@ while True:
             # cv2.putText(frame, str(counter), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
             cv2.putText(frame, str(int(len(frame_time)/total_time)) + ' fps', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         
-        # sys.stdout.buffer.write(frame.tobytes())
+        sys.stdout.buffer.write(frame.tobytes())
 
-        cv2.imshow('display', frame)
-        output.write(frame)
+        # cv2.imshow('display', frame)
+        # output.write(frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
